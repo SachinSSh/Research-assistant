@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  research-assistant:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=127.0.0.1
+      - API_PORT=8000
+      - DATABASE_URL=sqlite:///./data/research_assistant.db
+      - LANGCHAIN_TRACING_V2=true
+    env_file:
+      - ../.env
+    volumes:
+      - research_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  research_data:
+  redis_data:
